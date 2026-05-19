@@ -162,6 +162,7 @@ private:
 	globalentity_t	*Find( string_t globalname );
 	globalentity_t	*m_pList;
 	int				m_listCount;
+	int				allied;
 };
 
 extern CGlobalState gGlobalState;

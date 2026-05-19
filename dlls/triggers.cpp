@@ -2440,3 +2440,23 @@ void CTriggerCamera::Move()
 	float fraction = 2 * gpGlobals->frametime;
 	pev->velocity = ((pev->movedir * pev->speed) * fraction) + (pev->velocity * (1-fraction));
 }
+
+class CTriggerPlayerAlly : public CBaseDelay
+{
+public:
+	virtual int	ObjectCaps(void) { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	virtual void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+};
+LINK_ENTITY_TO_CLASS( trigger_playerally, CTriggerPlayerAlly );
+
+void CTriggerPlayerAlly::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+{
+	if (gpGlobals->isAllied == false)
+	{
+		gpGlobals->isAllied = true;
+	}
+	else
+	{
+		gpGlobals->isAllied = false;
+	}
+}

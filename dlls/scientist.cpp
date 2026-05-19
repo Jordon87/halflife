@@ -679,7 +679,7 @@ void CScientist :: Spawn( void )
 	m_bloodColor		= BLOOD_COLOR_RED;
 	pev->health			= gSkillData.scientistHealth;
 	pev->view_ofs		= Vector ( 0, 0, 50 );// position of the eyes relative to monster's origin.
-	m_flFieldOfView		= VIEW_FIELD_WIDE; // NOTE: we need a wide field of view so scientists will notice player and say hello
+	m_flFieldOfView		= -1.0f;
 	m_MonsterState		= MONSTERSTATE_NONE;
 
 //	m_flDistTooFar		= 256.0;
@@ -732,6 +732,7 @@ void CScientist :: TalkInit()
 	m_szFriends[0] = "monster_scientist";
 	m_szFriends[1] = "monster_sitting_scientist";
 	m_szFriends[2] = "monster_barney";
+	m_szFriends[3] = "monster_hevsci";
 
 	// scientists speach group names (group names are in sentences.txt)
 

@@ -52,6 +52,7 @@ typedef struct
 
 	void		*pSaveData;
 	vec3_t		vecLandmarkOffset;
+	bool		isAllied;
 } globalvars_t;
 
 

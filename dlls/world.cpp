@@ -374,6 +374,8 @@ int CGlobalState::Save( CSave &save )
 	int i;
 	globalentity_t *pEntity;
 
+	allied = gpGlobals->isAllied;
+
 	if ( !save.WriteFields( "GLOBAL", this, m_SaveData, ARRAYSIZE(m_SaveData) ) )
 		return 0;
 	
@@ -408,6 +410,7 @@ int CGlobalState::Restore( CRestore &restore )
 			return 0;
 		EntityAdd( MAKE_STRING(tmpEntity.name), MAKE_STRING(tmpEntity.levelName), tmpEntity.state );
 	}
+	gpGlobals->isAllied = (bool)allied;
 	return 1;
 }
 

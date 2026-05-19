@@ -233,6 +233,11 @@ cvar_t	sk_scientist_health1 = {"sk_scientist_health1","0"};
 cvar_t	sk_scientist_health2 = {"sk_scientist_health2","0"};
 cvar_t	sk_scientist_health3 = {"sk_scientist_health3","0"};
 
+// HEV Scientist
+cvar_t	sk_HEVscientist_health1 = {"sk_HEVscientist_health1","0"};
+cvar_t	sk_HEVscientist_health2 = {"sk_HEVscientist_health2","0"};
+cvar_t	sk_HEVscientist_health3 = {"sk_HEVscientist_health3","0"};
+
 
 // Snark
 cvar_t	sk_snark_health1 = {"sk_snark_health1","0"};
@@ -676,6 +681,12 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_scientist_health1 );// {"sk_scientist_health1","0"};
 	CVAR_REGISTER ( &sk_scientist_health2 );// {"sk_scientist_health2","0"};
 	CVAR_REGISTER ( &sk_scientist_health3 );// {"sk_scientist_health3","0"};
+	
+
+	// HEV Scientist
+	CVAR_REGISTER ( &sk_HEVscientist_health1 );// {"sk_scientist_health1","0"};
+	CVAR_REGISTER ( &sk_HEVscientist_health2 );// {"sk_scientist_health2","0"};
+	CVAR_REGISTER ( &sk_HEVscientist_health3 );// {"sk_scientist_health3","0"};
 
 
 	// Snark
@@ -896,5 +907,6 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sv_pushable_fixed_tick_fudge );
 
 	SERVER_COMMAND( "exec skill.cfg\n" );
+	SERVER_COMMAND("exec shlskill.cfg\n");
 }
 
