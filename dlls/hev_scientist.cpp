@@ -513,226 +513,226 @@ void CHEVSci::Reload()
 void CHEVSci::ShootShotgun(void)
 {
 	if (!HasAmmo(1))
-	{
-		Vector vecShootOrigin, vecShootAngles;
+		return;
 
-		GetAttachment(3, vecShootOrigin, vecShootAngles);
+	Vector vecShootOrigin, vecShootAngles;
 
-		UTIL_MakeVectors(pev->angles);
+	GetAttachment(3, vecShootOrigin, vecShootAngles);
 
-		Vector vecShootDir = ShootAtEnemy(vecShootOrigin);
-		Vector angDir = UTIL_VecToAngles(vecShootDir);
-		SetBlending(0, angDir.x);
+	UTIL_MakeVectors(pev->angles);
 
-		pev->effects |= EF_MUZZLEFLASH;
+	Vector vecShootDir = ShootAtEnemy(vecShootOrigin);
+	Vector angDir = UTIL_VecToAngles(vecShootDir);
+	SetBlending(0, angDir.x);
 
-		Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40, 90) + gpGlobals->v_up * RANDOM_FLOAT(75, 200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
-		EjectBrass(vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iShotgunShell, TE_BOUNCE_SHELL);
-		FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, BULLET_PLAYER_BUCKSHOT); // shoot +-5 degrees	
+	pev->effects |= EF_MUZZLEFLASH;
 
-		DecreaseAmmo(1);
+	Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40, 90) + gpGlobals->v_up * RANDOM_FLOAT(75, 200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
+	EjectBrass(vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iShotgunShell, TE_BOUNCE_SHELL);
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048, BULLET_PLAYER_BUCKSHOT); // shoot +-5 degrees	
 
-		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/sbarrel1.wav", 1.0f, ATTN_NORM);
-		CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.5f);
-	}
+	DecreaseAmmo(1);
+
+	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/sbarrel1.wav", 1.0f, ATTN_NORM);
+	CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.5f);
 }
 
 void CHEVSci::ShootGauss(void)
 {
 	if (!HasAmmo(1))
+		return;
+	
+	Vector vecShootOrigin, vecShootAngles;
+
+	UTIL_MakeVectors(pev->angles);
+	GetAttachment(3, vecShootOrigin, vecShootAngles);
+
+	Vector spreadDir;
+	spreadDir.x = RANDOM_FLOAT(-0.05f, 0.05f);
+	spreadDir.y = RANDOM_FLOAT(-0.05f, 0.05f);
+	spreadDir.z = RANDOM_FLOAT(-0.05f, 0.05f);
+
+	Vector vecShootDir = ShootAtEnemy(vecShootOrigin) + spreadDir;
+	Vector vecEnd = vecShootOrigin + vecShootDir * 8192;
+
+	TraceResult tr;
+
+	UTIL_MakeVectors(pev->angles);
+
+	Vector angDir = UTIL_VecToAngles(vecShootDir);
+	SetBlending(0, angDir.x);
+
+	pev->effects |= EF_MUZZLEFLASH;
+
+	UTIL_TraceLine(vecShootOrigin, vecEnd, dont_ignore_monsters, ENT(pev), &tr);
+
+	CBaseEntity *pTarget = CBaseEntity::Instance( tr.pHit );
+
+	if (pTarget == NULL || pTarget->pev->takedamage == 0.0f)
 	{
-		Vector vecShootOrigin, vecShootAngles;
-
-		UTIL_MakeVectors(pev->angles);
-		GetAttachment(3, vecShootOrigin, vecShootAngles);
-
-		Vector spreadDir;
-		spreadDir.x = RANDOM_FLOAT(-0.05f, 0.05f);
-		spreadDir.y = RANDOM_FLOAT(-0.05f, 0.05f);
-		spreadDir.z = RANDOM_FLOAT(-0.05f, 0.05f);
-
-		Vector vecShootDir = ShootAtEnemy(vecShootOrigin) + spreadDir;
-		Vector vecEnd = vecShootOrigin + vecShootDir * 8192;
-
-		TraceResult tr;
-
-		UTIL_MakeVectors(pev->angles);
-
-		Vector angDir = UTIL_VecToAngles(vecShootDir);
-		SetBlending(0, angDir.x);
-
-		pev->effects |= EF_MUZZLEFLASH;
-
-		UTIL_TraceLine(vecShootOrigin, vecEnd, dont_ignore_monsters, ENT(pev), &tr);
-
-		CBaseEntity *pTarget = CBaseEntity::Instance( tr.pHit );
-
-		if (pTarget == NULL || pTarget->pev->takedamage == 0.0f)
-		{
-			MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, tr.vecEndPos);
-			WRITE_BYTE(TE_GLOWSPRITE);
-			WRITE_COORD(tr.vecEndPos.x);
-			WRITE_COORD(tr.vecEndPos.y);
-			WRITE_COORD(tr.vecEndPos.z);
-			WRITE_SHORT(m_iGlow);
-			WRITE_BYTE(20);
-			WRITE_BYTE(3);
-			WRITE_BYTE(200);
-			MESSAGE_END();
-
-			MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, tr.vecEndPos);
-			WRITE_BYTE(TE_SPRITETRAIL);
-			WRITE_COORD(tr.vecEndPos.x);
-			WRITE_COORD(tr.vecEndPos.y);
-			WRITE_COORD(tr.vecEndPos.z);
-			WRITE_COORD(tr.vecEndPos.x + tr.vecPlaneNormal.x);
-			WRITE_COORD(tr.vecEndPos.y + tr.vecPlaneNormal.y);
-			WRITE_COORD(tr.vecEndPos.z + tr.vecPlaneNormal.z);
-			WRITE_SHORT(m_iGlow);
-			WRITE_BYTE(8);
-			WRITE_BYTE(6);
-			WRITE_BYTE(RANDOM_LONG(1,2));
-			WRITE_BYTE(10);
-			WRITE_BYTE(20);
-			MESSAGE_END();
-		}
-		else
-		{
-			ClearMultiDamage();
-
-			pTarget->TraceAttack(pev, gSkillData.plrDmgGauss, vecShootDir, &tr, 2);
-
-			ApplyMultiDamage(pev, pev);
-		}
-
-		DecreaseAmmo(1);
-
-		MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, tr.vecEndPos);
-		WRITE_BYTE(TE_BEAMENTPOINT);
-		WRITE_SHORT(entindex() + 0x1000);
+		MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, tr.vecEndPos);
+		WRITE_BYTE(TE_GLOWSPRITE);
 		WRITE_COORD(tr.vecEndPos.x);
 		WRITE_COORD(tr.vecEndPos.y);
 		WRITE_COORD(tr.vecEndPos.z);
-		WRITE_SHORT(m_iBeam);
-		WRITE_BYTE(0);
-		WRITE_BYTE(0);
-		WRITE_BYTE(1);
-		WRITE_BYTE(10);
-		WRITE_BYTE(0);
-		WRITE_BYTE(255);
-		WRITE_BYTE(128);
-		WRITE_BYTE(0);
-		WRITE_BYTE(128);
-		WRITE_BYTE(0);
+		WRITE_SHORT(m_iGlow);
+		WRITE_BYTE(20);
+		WRITE_BYTE(3);
+		WRITE_BYTE(200);
 		MESSAGE_END();
 
-		EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "weapons/gauss2.wav", 1.0f, ATTN_NORM, 0, RANDOM_LONG(0, 31) + 85);
-		CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3f);
+		MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, tr.vecEndPos);
+		WRITE_BYTE(TE_SPRITETRAIL);
+		WRITE_COORD(tr.vecEndPos.x);
+		WRITE_COORD(tr.vecEndPos.y);
+		WRITE_COORD(tr.vecEndPos.z);
+		WRITE_COORD(tr.vecEndPos.x + tr.vecPlaneNormal.x);
+		WRITE_COORD(tr.vecEndPos.y + tr.vecPlaneNormal.y);
+		WRITE_COORD(tr.vecEndPos.z + tr.vecPlaneNormal.z);
+		WRITE_SHORT(m_iGlow);
+		WRITE_BYTE(8);
+		WRITE_BYTE(6);
+		WRITE_BYTE(RANDOM_LONG(1,2));
+		WRITE_BYTE(10);
+		WRITE_BYTE(20);
+		MESSAGE_END();
 	}
+	else
+	{
+		ClearMultiDamage();
+
+		pTarget->TraceAttack(pev, gSkillData.plrDmgGauss, vecShootDir, &tr, 2);
+
+		ApplyMultiDamage(pev, pev);
+	}
+
+	DecreaseAmmo(1);
+
+	MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, tr.vecEndPos);
+	WRITE_BYTE(TE_BEAMENTPOINT);
+	WRITE_SHORT(entindex() + 0x1000);
+	WRITE_COORD(tr.vecEndPos.x);
+	WRITE_COORD(tr.vecEndPos.y);
+	WRITE_COORD(tr.vecEndPos.z);
+	WRITE_SHORT(m_iBeam);
+	WRITE_BYTE(0);
+	WRITE_BYTE(0);
+	WRITE_BYTE(1);
+	WRITE_BYTE(10);
+	WRITE_BYTE(0);
+	WRITE_BYTE(255);
+	WRITE_BYTE(128);
+	WRITE_BYTE(0);
+	WRITE_BYTE(128);
+	WRITE_BYTE(0);
+	MESSAGE_END();
+
+	EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "weapons/gauss2.wav", 1.0f, ATTN_NORM, 0, RANDOM_LONG(0, 31) + 85);
+	CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3f);
 }
 
 void CHEVSci::ShootMP5(void)
 {
 	if (!HasAmmo(1))
+		return;
+
+	Vector vecShootOrigin, vecShootAngles;
+
+	GetAttachment(1, vecShootOrigin, vecShootAngles);
+
+	UTIL_MakeVectors(pev->angles);
+
+	Vector vecShootDir = ShootAtEnemy(vecShootOrigin);
+	Vector angDir = UTIL_VecToAngles(vecShootDir);
+	SetBlending(0, angDir.x);
+
+	pev->effects |= EF_MUZZLEFLASH;
+
+	Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40, 90) + gpGlobals->v_up * RANDOM_FLOAT(75, 200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
+	EjectBrass(vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL);
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_MONSTER_MP5); // shoot +-5 degrees	
+
+	DecreaseAmmo(1);
+
+	int iPitch = RANDOM_LONG(0, 10) + -5;
+
+	switch (RANDOM_LONG(0, 2))
 	{
-		Vector vecShootOrigin, vecShootAngles;
-
-		GetAttachment(1, vecShootOrigin, vecShootAngles);
-
-		UTIL_MakeVectors(pev->angles);
-
-		Vector vecShootDir = ShootAtEnemy(vecShootOrigin);
-		Vector angDir = UTIL_VecToAngles(vecShootDir);
-		SetBlending(0, angDir.x);
-
-		pev->effects |= EF_MUZZLEFLASH;
-
-		Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40, 90) + gpGlobals->v_up * RANDOM_FLOAT(75, 200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
-		EjectBrass(vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL);
-		FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_MONSTER_MP5); // shoot +-5 degrees	
-
-		DecreaseAmmo(1);
-
-		int iPitch = RANDOM_LONG(0, 10) + -5;
-
-		switch (RANDOM_LONG(0, 2))
-		{
-		case 0: EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "weapons/hks1.wav", 1, ATTN_NORM, 0, iPitch + 100); break;
-		case 1: EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "weapons/hks2.wav", 1, ATTN_NORM, 0, iPitch + 100); break;
-		case 2: EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "weapons/hks3.wav", 1, ATTN_NORM, 0, iPitch + 100); break;
-		}
-
-		CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3f);
+	case 0: EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "weapons/hks1.wav", 1, ATTN_NORM, 0, iPitch + 100); break;
+	case 1: EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "weapons/hks2.wav", 1, ATTN_NORM, 0, iPitch + 100); break;
+	case 2: EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "weapons/hks3.wav", 1, ATTN_NORM, 0, iPitch + 100); break;
 	}
+
+	CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3f);
 }
 
 void CHEVSci::ShootRPG(void)
 {
 	if (!HasAmmo(1))
+		return;
+
+	Vector vecShootOrigin, vecShootAngles;
+
+	UTIL_MakeVectors(pev->angles);
+	GetAttachment(1, vecShootOrigin, vecShootAngles);
+
+	Vector vecAim;
+
+	if (m_hEnemy && m_hEnemy->pev->velocity.Length() > 64.0f)
 	{
-		Vector vecShootOrigin, vecShootAngles;
+		float travelTime = (m_vecEnemyLKP - vecShootOrigin).Length() / 2000.0f + 0.4f;
+		Vector vecLead = (m_hEnemy->pev->velocity * travelTime).Normalize();
+		Vector vecShootDir = ShootAtEnemy(vecShootOrigin);
 
-		UTIL_MakeVectors(pev->angles);
-		GetAttachment(1, vecShootOrigin, vecShootAngles);
-
-		Vector vecAim;
-
-		if (m_hEnemy && m_hEnemy->pev->velocity.Length() > 64.0f)
-		{
-			float travelTime = (m_vecEnemyLKP - vecShootOrigin).Length() / 2000.0f + 0.4f;
-			Vector vecLead = (m_hEnemy->pev->velocity * travelTime).Normalize();
-			Vector vecShootDir = ShootAtEnemy(vecShootOrigin);
-
-			vecAim = (vecShootDir + vecLead) / 2.0f;
-		}
-		else
-		{
-			vecAim = ShootAtEnemy(vecShootOrigin);
-		}
-
-		Vector angDir = UTIL_VecToAngles(vecAim);
-		angDir.x = angDir.x * -1.0f;
-
-		SetBlending(0, angDir.x);
-
-		CBaseEntity::Create( "rpg_rocket", vecShootOrigin, angDir, edict() );
-
-		DecreaseAmmo(1);
-
-		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/rocketfire1.wav", 0.8f, ATTN_NORM);
-		EMIT_SOUND(ENT(pev), CHAN_ITEM, "weapons/glauncher.wav", 0.7f, ATTN_NORM);
-		CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3f);
+		vecAim = (vecShootDir + vecLead) / 2.0f;
 	}
+	else
+	{
+		vecAim = ShootAtEnemy(vecShootOrigin);
+	}
+
+	Vector angDir = UTIL_VecToAngles(vecAim);
+	angDir.x = angDir.x * -1.0f;
+
+	SetBlending(0, angDir.x);
+
+	CBaseEntity::Create( "rpg_rocket", vecShootOrigin, angDir, edict() );
+
+	DecreaseAmmo(1);
+
+	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/rocketfire1.wav", 0.8f, ATTN_NORM);
+	EMIT_SOUND(ENT(pev), CHAN_ITEM, "weapons/glauncher.wav", 0.7f, ATTN_NORM);
+	CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3f);
 }
 
 void CHEVSci::Shoot357(void)
 {
 	if (!HasAmmo(1))
+		return;
+
+	Vector vecShootOrigin, vecShootAngles;
+
+	UTIL_MakeVectors(pev->angles);
+	GetAttachment(2, vecShootOrigin, vecShootAngles);
+
+	Vector vecShootDir = ShootAtEnemy(vecShootOrigin);
+	Vector angDir = UTIL_VecToAngles(vecShootDir);
+	SetBlending(0, angDir.x);
+
+	pev->effects |= EF_MUZZLEFLASH;
+
+	Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40, 90) + gpGlobals->v_up * RANDOM_FLOAT(75, 200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
+	EjectBrass(vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL);
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_5DEGREES, 4096, BULLET_PLAYER_357); // shoot +-5 degrees	
+
+	DecreaseAmmo(1);
+
+	switch (RANDOM_LONG(0, 1))
 	{
-		Vector vecShootOrigin, vecShootAngles;
-
-		UTIL_MakeVectors(pev->angles);
-		GetAttachment(2, vecShootOrigin, vecShootAngles);
-
-		Vector vecShootDir = ShootAtEnemy(vecShootOrigin);
-		Vector angDir = UTIL_VecToAngles(vecShootDir);
-		SetBlending(0, angDir.x);
-
-		pev->effects |= EF_MUZZLEFLASH;
-
-		Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40, 90) + gpGlobals->v_up * RANDOM_FLOAT(75, 200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
-		EjectBrass(vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL);
-		FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_5DEGREES, 4096, BULLET_PLAYER_357); // shoot +-5 degrees	
-
-		DecreaseAmmo(1);
-
-		switch (RANDOM_LONG(0, 1))
-		{
-		case 0: EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/357_shot2.wav", 0.9f, ATTN_NORM); break;
-		case 1: EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/357_shot1.wav", 0.9f, ATTN_NORM); break;
-		}
-		CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3f);
+	case 0: EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/357_shot2.wav", 0.9f, ATTN_NORM); break;
+	case 1: EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/357_shot1.wav", 0.9f, ATTN_NORM); break;
 	}
+	CSoundEnt::InsertSound(bits_SOUND_COMBAT, pev->origin, 384, 0.3f);
 }
 
 void CHEVSci::HandleAnimEvent(MonsterEvent_t* pEvent)
